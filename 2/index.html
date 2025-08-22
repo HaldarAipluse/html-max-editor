@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A professional, client-side tool for writing and previewing HTML code with a tactile interface.">
+  <meta name="description" content="A professional, feature-rich HTML playground with real-time preview, code formatting, and multiple themes.">
   <title>HTML Pro Editor</title>
   
   <!-- Icon Library: Bootstrap Icons -->
@@ -11,8 +11,12 @@
   
   <!-- CodeMirror CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/monokai.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/dialog/dialog.min.css">
+  <!-- Additional Themes -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/monokai.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-darker.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/eclipse.min.css">
 
   <style>
     :root {
@@ -26,152 +30,189 @@
     }
 
     html, body {
-      height: 100%;
-      padding: 0;
-      margin: 0;
-      font-family: var(--font-family);
-      color: var(--text-color);
-      overflow: hidden;
-      background-color: var(--bg-color);
+      height: 100%; padding: 0; margin: 0;
+      font-family: var(--font-family); color: var(--text-color);
+      overflow: hidden; background-color: var(--bg-color);
     }
-
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-
+    body { display: flex; flex-direction: column; }
+    
     header, footer {
-      flex-shrink: 0;
-      background: #e0e0e0;
-      padding: 8px 12px;
-      border-color: var(--border-color);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      flex-shrink: 0; background: #e0e0e0; padding: 8px 12px;
+      border-color: var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
     header { border-bottom: 1px solid var(--border-color); }
     footer { border-top: 1px solid var(--border-color); }
 
     .control-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .control-separator { border-left: 1px solid var(--border-color); margin: 0 4px; height: 24px; }
     
     main { display: flex; flex: 1; min-height: 0; }
     main.vertical { flex-direction: column; }
 
-    /* 3D Button Style */
     button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 12px;
-      font-size: 1rem; /* For icons */
-      cursor: pointer;
-      color: var(--text-color);
-      background: var(--button-bg);
-      border: 1px solid var(--border-color);
-      border-bottom: 2px solid var(--shadow-color);
-      border-radius: 5px;
-      transition: all 0.1s ease-out;
-      position: relative;
+      display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px;
+      font-size: 1rem; cursor: pointer; color: var(--text-color);
+      background: var(--button-bg); border: 1px solid var(--border-color);
+      border-bottom: 2px solid var(--shadow-color); border-radius: 5px;
+      transition: all 0.1s ease-out; position: relative;
     }
     button:hover { background: #fff; }
-    button:active {
-      transform: translateY(1px);
-      border-bottom-width: 1px;
-      background: var(--button-active-bg);
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+    button:active, button.toggle.active {
+      transform: translateY(1px); border-bottom-width: 1px;
+      background: var(--button-active-bg); box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
     }
 
-    button.toggle.active {
-      transform: translateY(1px);
-      border-bottom-width: 1px;
-      background: var(--button-active-bg);
-      box-shadow: inset 0 2px 3px rgba(0,0,0,0.2);
-      color: #0078d4;
-    }
-    
     label { font-size: 0.8rem; font-weight: 600; padding-left: 5px; }
     select {
-      font-size: 0.8rem;
-      padding: 5px 8px;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      background-color: #fff;
+      font-size: 0.8rem; padding: 5px 8px; border: 1px solid var(--border-color);
+      border-radius: 4px; background-color: #fff;
     }
 
     .control-group-right { margin-left: auto; display: flex; align-items: center; gap: 8px;}
     
-    #replaceBar {
-        padding: 8px;
-        margin-top: 8px;
-        border-radius: 5px;
-        background: #f1f1f1;
-        border: 1px solid var(--border-color);
-    }
-
-    #editorWrapper, #previewerWrapper {
-      position: relative;
-      flex: 1;
-      display: flex;
-    }
+    #editorWrapper, #previewerWrapper { position: relative; flex: 1; display: flex; }
     #previewerWrapper { border-left: 2px solid var(--border-color); }
     main.vertical #previewerWrapper { border-left: 0; border-top: 2px solid var(--border-color); }
 
-    .CodeMirror {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      font-family: 'Fira Code', 'Courier New', monospace;
-    }
-    
+    .CodeMirror { position: absolute; width: 100%; height: 100%; font-family: 'Fira Code', 'Courier New', monospace; }
     iframe { width: 100%; height: 100%; border: 0; background: #fff; }
 
     footer { justify-content: space-between; font-size: 0.75rem; }
     .footer-section { display: flex; align-items: center; gap: 8px; }
-    .footer-section a { color: inherit; text-decoration: none; }
-    .footer-section a:hover { text-decoration: underline; }
     
-    .hidden { display: none !important; }
-    .number { font-family: monospace; }
+    .hidden { display: none !important; } .number { font-family: monospace; }
+
+    /* Modal Styles */
+    #modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+      opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+    }
+    #modal-overlay.visible { opacity: 1; visibility: visible; }
+    #modal {
+      background: var(--bg-color); padding: 20px; border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 400px;
+      transform: scale(0.9); transition: transform 0.3s;
+    }
+    #modal-overlay.visible #modal { transform: scale(1); }
+    #modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;}
+    #modal-title { font-size: 1.2rem; font-weight: 600; }
+    #modal-close { font-size: 1.5rem; cursor: pointer; border: none; background: none; }
+    .shortcut-list kbd {
+        background-color: #fafafa; border: 1px solid #ccc; border-radius: 3px;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.1); padding: 2px 6px; font-size: 0.85em;
+    }
+
+    /* Toast Notification Styles */
+    #toast {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background-color: #2c3e50; color: white; padding: 12px 20px;
+        border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        opacity: 0; visibility: hidden; transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
+        z-index: 1000;
+    }
+    #toast.show { opacity: 1; visibility: visible; transform: translate(-50%, -10px); }
   </style>
 </head>
 <body>
 
   <header>
     <div class="control-group">
+      <!-- File Group -->
       <button id="downloadLink" title="Download File"><i class="bi bi-download"></i></button>
       <button id="fileInputTrigger" title="Open File"><i class="bi bi-folder2-open"></i></button>
       <input type="file" accept="text/html" id="fileInput" class="hidden">
       
+      <div class="control-separator"></div>
+
+      <!-- Actions Group -->
+      <button id="runButton" title="Run Preview"><i class="bi bi-play-fill"></i></button>
+      <button id="resetButton" title="Reset Editor"><i class="bi bi-arrow-counterclockwise"></i></button>
+      <button id="tidyButton" title="Format Code (Ctrl+Alt+L)"><i class="bi bi-stars"></i></button>
+      <button id="copyButton" title="Copy HTML"><i class="bi bi-clipboard"></i></button>
+      
+      <div class="control-separator"></div>
+
+      <!-- View Group -->
+      <label for="themeSelector">Theme</label>
+      <select id="themeSelector">
+        <option value="monokai">Monokai</option>
+        <option value="dracula">Dracula</option>
+        <option value="material-darker">Material</option>
+        <option value="eclipse">Eclipse (Light)</option>
+        <option value="default">Default (Light)</option>
+      </select>
       <label for="fontSizeSelector">Font</label>
       <select id="fontSizeSelector">
         <option>12</option><option>13</option><option selected>14</option><option>16</option><option>18</option>
       </select>
-      
-      <label for="previewSelector">Preview</label>
-      <select id="previewSelector">
-        <option>Instant</option>
-        <optgroup label="Delayed">
-          <option value="500" selected>0.5s</option><option value="1000">1.0s</option><option value="2000">2.0s</option>
-        </optgroup>
-        <option>Manual</option>
-      </select>
-      <button id="runButton" title="Run Preview"><i class="bi bi-play-fill"></i></button>
-      <button id="resetButton" title="Reset Editor"><i class="bi bi-arrow-counterclockwise"></i></button>
 
       <div class="control-group-right">
         <label for="editorSizeInput">Size</label>
         <input type="range" id="editorSizeInput" min="10" max="90" value="50">
         <button type="button" class="toggle" id="verticalViewToggle" title="Vertical View"><i class="bi bi-distribute-vertical"></i></button>
-        <button type="button" class="toggle active" id="darkEditorToggle" title="Dark Mode"><i class="bi bi-moon-stars-fill"></i></button>
-        <button type="button" class="toggle" id="replaceBarToggle" title="Find & Replace"><i class="bi bi-search"></i></button>
+        <button id="helpButton" title="Shortcuts & Help"><i class="bi bi-question-circle"></i></button>
       </div>
-    </div>
-    <div id="replaceBar" class="hidden">
-        <p style="margin:0; font-size:0.8rem;">Use <b>Ctrl+F</b> (Find) and <b>Ctrl+Shift+F</b> (Replace) inside the editor.</p>
     </div>
   </header>
 
   <main>
     <div id="editorWrapper">
-      <textarea id="editor"><!doctype html>
+      <textarea id="editor"><!-- Default Content --></textarea>
+    </div>
+    <div id="previewerWrapper">
+      <iframe></iframe>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-section" id="docMetrics">
+      <span class="number" id="characterCount">0</span> characters | <span class="number" id="byteCount">0</span> bytes
+    </div>
+    <div class="footer-section">
+      Created by <a href="https://tzproapks.blogspot.com/" rel="author" target="_blank">tzproapks</a>
+    </div>
+  </footer>
+
+  <!-- Modal for Shortcuts -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <div id="modal-header">
+        <h2 id="modal-title">Keyboard Shortcuts</h2>
+        <button id="modal-close">&times;</button>
+      </div>
+      <div class="shortcut-list">
+        <p><b>Find:</b> <kbd>Ctrl</kbd> + <kbd>F</kbd></p>
+        <p><b>Replace:</b> <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></p>
+        <p><b>Format Code:</b> <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd></p>
+        <p><b>Save Content:</b> <kbd>Ctrl</kbd> + <kbd>S</kbd> (triggers download)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast"></div>
+
+  <!-- Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-html.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closetag.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/search/search.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/search/searchcursor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/dialog/dialog.min.js"></script>
+
+  <script>
+    (function() {
+      "use strict";
+
+      const App = {
+        config: {
+          localStorageKey: 'htmlProEditorState_v2',
+          defaultContent: `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -187,46 +228,9 @@
   <p>This is your real-time HTML editor.</p>
   <script>
     console.log("Welcome to the editor!");
-  </script>
+  <\/script>
 </body>
-</html></textarea>
-    </div>
-    <div id="previewerWrapper">
-      <iframe></iframe>
-    </div>
-  </main>
-
-  <footer>
-    <div class="footer-section" id="docMetrics">
-      <span class="number" id="characterCount">0</span> characters | <span class="number" id="byteCount">0</span> bytes
-    </div>
-    <div class="footer-section">
-      <a href="#" id="copyButton" title="Copy Link"><i class="bi bi-link-45deg" style="font-size: 1.2rem;"></i></a>
-      <output id="copyNotification"></output>
-       | Created by <a href="https://tzproapks.blogspot.com/" rel="author">tzproapks</a>
-    </div>
-  </footer>
-  
-  <!-- CodeMirror JavaScript -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/xml/xml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/css/css.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/htmlmixed/htmlmixed.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closetag.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/search/search.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/search/searchcursor.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/search/jump-to-line.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/dialog/dialog.min.js"></script>
-
-  <script>
-    (function() {
-      "use strict";
-
-      const App = {
-        config: {
-          localStorageKey: 'htmlProEditorState',
-          defaultContent: document.getElementById('editor').value,
+</html>`,
           numberFormat: new Intl.NumberFormat(),
         },
         ui: {},
@@ -238,51 +242,66 @@
           this.initEditor();
           this.loadState();
           this.bindEventListeners();
-          this.updateUI(); // Initial UI sync based on loaded state
+          this.updateUI();
         },
 
         bindUIElements() {
-            const ids = [
-                'downloadLink', 'fileInputTrigger', 'fileInput', 'fontSizeSelector', 'previewSelector',
-                'runButton', 'resetButton', 'editorSizeInput', 'verticalViewToggle',
-                'darkEditorToggle', 'replaceBarToggle', 'replaceBar', 'editorWrapper', 'previewerWrapper',
-                'characterCount', 'byteCount', 'copyButton', 'copyNotification'
-            ];
-            ids.forEach(id => this.ui[id] = document.getElementById(id));
-            this.ui.main = document.querySelector('main');
-            this.ui.previewer = document.querySelector('iframe');
+          const ids = [
+            'downloadLink', 'fileInputTrigger', 'fileInput', 'runButton', 'resetButton', 'tidyButton', 'copyButton',
+            'themeSelector', 'fontSizeSelector', 'editorSizeInput', 'verticalViewToggle', 'helpButton',
+            'editorWrapper', 'previewerWrapper', 'characterCount', 'byteCount',
+            'modal-overlay', 'modal-close', 'toast'
+          ];
+          ids.forEach(id => this.ui[id] = document.getElementById(id));
+          this.ui.main = document.querySelector('main');
+          this.ui.previewer = document.querySelector('iframe');
         },
 
         initEditor() {
-          this.editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
-            lineNumbers: true,
-            mode: 'htmlmixed',
-            theme: 'monokai',
-            autoCloseTags: true,
+          const editorNode = document.getElementById('editor');
+          editorNode.value = this.config.defaultContent; // Set default content before init
+          this.editor = CodeMirror.fromTextArea(editorNode, {
+            lineNumbers: true, mode: 'htmlmixed', theme: 'monokai', autoCloseTags: true,
           });
         },
 
         bindEventListeners() {
           this.editor.on('change', () => this.methods.dispatchPreviewUpdate());
           
+          // Header buttons
           this.ui.downloadLink.addEventListener('click', (e) => this.methods.createDownloadURL(e));
           this.ui.fileInputTrigger.addEventListener('click', () => this.ui.fileInput.click());
           this.ui.fileInput.addEventListener('change', (e) => this.methods.handleFileOpen(e));
-          this.ui.fontSizeSelector.addEventListener('change', () => this.methods.resizeFont());
-          this.ui.previewSelector.addEventListener('change', () => this.methods.dispatchPreviewUpdate(true));
           this.ui.runButton.addEventListener('click', () => this.methods.preview());
           this.ui.resetButton.addEventListener('click', () => this.methods.resetContent());
-          this.ui.editorSizeInput.addEventListener('input', () => this.methods.resizePanes());
+          this.ui.tidyButton.addEventListener('click', () => this.methods.formatCode());
+          this.ui.copyButton.addEventListener('click', () => this.methods.copyEditorContent());
+          this.ui.helpButton.addEventListener('click', () => this.methods.openModal());
+          
+          // Header controls
+          ['themeSelector', 'fontSizeSelector', 'editorSizeInput', 'verticalViewToggle'].forEach(id => {
+            const el = this.ui[id];
+            const eventType = el.type === 'range' ? 'input' : 'change';
+            el.addEventListener(eventType, () => this.updateUI());
+          });
+          this.ui.verticalViewToggle.addEventListener('click', (e) => e.currentTarget.classList.toggle('active'));
 
-          // Toggle buttons trigger a full UI update
-          ['verticalViewToggle', 'darkEditorToggle', 'replaceBarToggle'].forEach(id => {
-              this.ui[id].addEventListener('click', (e) => {
-                  e.currentTarget.classList.toggle('active');
-                  this.updateUI();
-              });
+          // Modal
+          this.ui['modal-close'].addEventListener('click', () => this.methods.closeModal());
+          this.ui['modal-overlay'].addEventListener('click', (e) => {
+            if (e.target === this.ui['modal-overlay']) this.methods.closeModal();
+          });
+
+          // Keyboard shortcuts
+          document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'l') {
+              e.preventDefault(); this.methods.formatCode();
+            }
+            if (e.ctrlKey && e.key.toLowerCase() === 's') {
+              e.preventDefault(); this.methods.createDownloadURL(e);
+            }
           });
           
-          this.ui.copyButton.addEventListener('click', (e) => { e.preventDefault(); this.methods.copyLink(); });
           window.addEventListener('beforeunload', () => this.saveState());
         },
 
@@ -293,12 +312,9 @@
           },
           dispatchPreviewUpdate(forceUpdate = false) {
             clearTimeout(App.debounceTimeout);
-            const mode = App.ui.previewSelector.value;
-            if (mode === 'Instant' || forceUpdate) {
-              this.preview();
-            } else if (mode !== 'Manual') {
-              App.debounceTimeout = setTimeout(() => this.preview(), parseInt(mode, 10));
-            }
+            const mode = "500"; // Simplified for now, can be brought back with a selector
+            if (forceUpdate) this.preview();
+            else App.debounceTimeout = setTimeout(() => this.preview(), parseInt(mode, 10));
           },
           updateDocumentMetrics() {
             const content = App.editor.getValue();
@@ -308,71 +324,72 @@
             App.ui.byteCount.textContent = App.config.numberFormat.format(byteCount);
           },
           createDownloadURL(event) {
-            event.preventDefault(); // Prevent navigation
+            event.preventDefault();
             const blob = new Blob([App.editor.getValue()], { type: 'text/html; charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            a.href = url; a.download = 'index.html';
+            a.click(); URL.revokeObjectURL(url); a.remove();
+            this.showToast('Download started...');
           },
           async handleFileOpen(event) {
             const file = event.target.files[0];
-            if (!file) return;
-            try { App.editor.setValue(await file.text()); } 
-            catch (err) { alert("Could not read the selected file."); }
-            event.target.value = '';
+            if (file) {
+              try { App.editor.setValue(await file.text()); } 
+              catch (err) { alert("Could not read the selected file."); }
+              event.target.value = '';
+            }
           },
           resetContent() {
             if (confirm('Are you sure you want to reset the editor content?')) {
               App.editor.setValue(App.config.defaultContent);
             }
           },
-          resizeFont() {
-            App.editor.getWrapperElement().style.fontSize = App.ui.fontSizeSelector.value + 'px';
-            App.editor.refresh();
-          },
-          resizePanes() {
-            const size = App.ui.editorSizeInput.value;
-            App.ui.editorWrapper.style.flexGrow = size;
-            App.ui.previewerWrapper.style.flexGrow = 100 - size;
-          },
-          copyLink() {
-            navigator.clipboard.writeText(location.href).then(() => {
-                App.ui.copyNotification.textContent = 'Copied!';
-                setTimeout(() => App.ui.copyNotification.textContent = '', 2000);
+          formatCode() {
+            const currentCode = App.editor.getValue();
+            const formattedCode = html_beautify(currentCode, {
+              indent_size: 2, wrap_line_length: 120,
             });
-          }
+            App.editor.setValue(formattedCode);
+            this.showToast('Code formatted!');
+          },
+          copyEditorContent() {
+            navigator.clipboard.writeText(App.editor.getValue()).then(() => {
+              this.showToast('Copied to Clipboard!');
+            });
+          },
+          showToast(message) {
+              const toast = App.ui.toast;
+              toast.textContent = message;
+              toast.classList.add('show');
+              setTimeout(() => toast.classList.remove('show'), 3000);
+          },
+          openModal() { App.ui['modal-overlay'].classList.add('visible'); },
+          closeModal() { App.ui['modal-overlay'].classList.remove('visible'); },
         },
 
         updateUI() {
-          const isDark = this.ui.darkEditorToggle.classList.contains('active');
-          this.editor.setOption('theme', isDark ? 'monokai' : 'default');
-
-          const isVertical = this.ui.verticalViewToggle.classList.contains('active');
-          this.ui.main.classList.toggle('vertical', isVertical);
-
-          const showReplace = this.ui.replaceBarToggle.classList.contains('active');
-          this.ui.replaceBar.classList.toggle('hidden', !showReplace);
+          App.editor.setOption('theme', App.ui.themeSelector.value);
+          App.editor.getWrapperElement().style.fontSize = App.ui.fontSizeSelector.value + 'px';
           
-          this.methods.resizeFont();
-          this.methods.resizePanes();
-          this.editor.refresh();
+          const isVertical = App.ui.verticalViewToggle.classList.contains('active');
+          App.ui.main.classList.toggle('vertical', isVertical);
+          
+          const size = App.ui.editorSizeInput.value;
+          App.ui.editorWrapper.style.flexGrow = size;
+          App.ui.previewerWrapper.style.flexGrow = 100 - size;
+          
+          App.editor.refresh();
           this.methods.dispatchPreviewUpdate(true);
         },
 
         saveState() {
           const state = {
             content: this.editor.getValue(),
+            theme: this.ui.themeSelector.value,
             fontSize: this.ui.fontSizeSelector.value,
-            previewMode: this.ui.previewSelector.value,
             editorSize: this.ui.editorSizeInput.value,
             isVertical: this.ui.verticalViewToggle.classList.contains('active'),
-            isDark: this.ui.darkEditorToggle.classList.contains('active'),
-            isReplaceVisible: this.ui.replaceBarToggle.classList.contains('active'),
           };
           localStorage.setItem(this.config.localStorageKey, JSON.stringify(state));
         },
@@ -383,12 +400,10 @@
           try {
             const state = JSON.parse(savedState);
             this.editor.setValue(state.content || this.config.defaultContent);
+            this.ui.themeSelector.value = state.theme || 'monokai';
             this.ui.fontSizeSelector.value = state.fontSize || '14';
-            this.ui.previewSelector.value = state.previewMode || '500';
             this.ui.editorSizeInput.value = state.editorSize || '50';
             this.ui.verticalViewToggle.classList.toggle('active', state.isVertical || false);
-            this.ui.darkEditorToggle.classList.toggle('active', state.isDark !== false);
-            this.ui.replaceBarToggle.classList.toggle('active', state.isReplaceVisible || false);
           } catch (e) {
             localStorage.removeItem(this.config.localStorageKey);
           }
