@@ -1,1 +1,712 @@
+<!doctype html>
+<html lang="en">
 
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="HTML Max Editor is a lightweight tool for writing and previewing HTML code in real time.">
+  <title>HTML Max Editor : Online HTML Editor</title>
+  <link rel="icon" href="index.jpg">
+  <style>
+    /* ==================== */
+    /* Base and Component Styles */
+    /* ==================== */
+    :root {
+      --background-color: #2e2e2e;
+      --text-color: #e0e0e0;
+      --primary-color: #4CAF50;
+      --secondary-color: #3e3e3e;
+      --shadow-light: #444444;
+      --shadow-dark: #1a1a1a;
+      --inset-shadow-light: rgba(68, 68, 68, 0.5);
+      --inset-shadow-dark: rgba(26, 26, 26, 0.5);
+    }
+
+    html,
+    body {
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      background-color: var(--background-color);
+      color: var(--text-color);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--secondary-color);
+      padding: 10px;
+      border-bottom: 1px solid var(--shadow-dark);
+    }
+
+    footer {
+      background: var(--secondary-color);
+      padding: 5px;
+      border-top: 1px solid var(--shadow-dark);
+    }
+
+    header div,
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header div {
+      margin: 5px;
+    }
+
+    main {
+      display: flex;
+      flex: 1;
+    }
+
+    main.vertical {
+      flex-direction: column;
+    }
+
+    header *,
+    footer * {
+      font: 0.85rem Arial, sans-serif;
+      color: var(--text-color);
+    }
+
+    select,
+    button,
+    input[type="text"],
+    input[type="range"],
+    output {
+      margin: 0;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 20px;
+      background: var(--secondary-color);
+      box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+      color: var(--text-color);
+      outline: none;
+    }
+
+    button, select {
+      cursor: pointer;
+    }
+    
+    button:active, .toggle.active {
+      box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    label[for="fileInput"] {
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: var(--secondary-color);
+      box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+      cursor: pointer;
+    }
+
+    label[for="editorSizeInput"],
+    #share {
+      margin-left: auto;
+    }
+
+    #editorSizeInput,
+    iframe {
+      padding: 0;
+    }
+
+    #footerContainerToggle {
+      width: 1rem;
+      height: 1rem;
+      padding: 0;
+      border-bottom-width: 0.3125rem;
+      border-radius: 0;
+    }
+
+    #copyButton {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    img,
+    svg {
+      display: block;
+      width: 1.2rem;
+      height: 1.2rem;
+      fill: var(--text-color);
+    }
+
+    main div {
+      position: relative;
+    }
+
+    #previewerWrapper {
+      border-left: 5px solid var(--shadow-dark);
+    }
+
+    main.vertical #previewerWrapper {
+      border-left: 0;
+      border-top: 5px solid var(--shadow-dark);
+    }
+
+    main div * {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      margin: 0;
+    }
+
+    textarea {
+      box-sizing: border-box;
+      padding: 15px;
+      outline: 0;
+      resize: none;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Courier New', Courier, monospace;
+      border: none;
+    }
+
+    /* ==================== */
+    /* Utilities */
+    /* ==================== */
+    .toggle {
+      padding: 8px;
+      border-radius: 50%;
+    }
+    
+    .number {
+      font-family: monospace;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>
+      <a href="" download="template.html" id="downloadLink" title="Download">
+        <button type="button" title="Download">
+          <svg viewBox="0 0 24 24"><path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" /></svg>
+        </button>
+      </a>
+      <label for="fontSizeSelector">Font size</label>
+      <select id="fontSizeSelector">
+        <option>12</option>
+        <option>13</option>
+        <option selected>14</option>
+        <option>15</option>
+        <option>16</option>
+        <option>17</option>
+        <option>18</option>
+        <option>20</option>
+        <option>22</option>
+        <option>24</option>
+      </select>
+      <label for="previewSelector">Preview</label>
+      <select id="previewSelector">
+        <option>Instant</option>
+        <optgroup label="Delayed">
+          <option value="500" selected>0.5 s</option>
+          <option value="1000">1.0 s</option>
+          <option value="1500">1.5 s</option>
+          <option value="2000">2.0 s</option>
+        </optgroup>
+        <option>Manual</option>
+      </select>
+      <button type="button" id="runButton" title="Run">
+        <svg viewBox="0 0 24 24"><path d="M8,5.14V19.14L19,12.14L8,5.14Z" /></svg>
+      </button>
+      <button type="button" id="resetButton" title="Reset">
+        <svg viewBox="0 0 24 24"><path d="M12,4C7.58,4 4,7.58 4,12C4,16.42 7.58,20 12,20C16.42,20 20,16.42 20,12C20,7.58 16.42,4 12,4M12,18C8.69,18 6,15.31 6,12C6,8.69 8.69,6 12,6C15.31,6 18,8.69 18,12C18,15.31 15.31,18 12,18M13.5,13.88V15H10.5V13.88L12.13,12.25L10.5,10.63V9H13.5V10.13L11.88,11.75L13.5,13.38V13.88Z" /></svg>
+      </button>
+      <button type="button" id="selectButton" title="Select All">
+        <svg viewBox="0 0 24 24"><path d="M4,2A2,2 0 0,0 2,4V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V4A2,2 0 0,0 20,2H4M4,4H20V20H4V4Z" /></svg>
+      </button>
+      <label for="fileInput" title="Open File">
+        <svg viewBox="0 0 24 24"><path d="M9,16V10H15V16H9M11,12H13V14H11V12M20,6H12L10,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8A2,2 0 0,0 20,6Z" /></svg>
+      </label>
+      <input type="file" accept="text/html" id="fileInput">
+      <label for="editorSizeInput">Editor size</label>
+      <input type="range" id="editorSizeInput">
+      <output for="editorSizeInput" class="number" id="editorSizeOutput"></output>
+      <button type="button" class="toggle" id="verticalViewToggle" title="Vertical View">
+        <svg viewBox="0 0 24 24"><path d="M3,21V3H21V21H3M5,5V19H19V5H5Z" /></svg>
+      </button>
+      <button type="button" class="toggle" id="darkEditorToggle" title="Dark Editor">
+        <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20V4Z" /></svg>
+      </button>
+      <button type="button" class="toggle" id="spellcheckToggle" title="Spellcheck">
+        <svg viewBox="0 0 24 24"><path d="M11.5,2C6.81,2 3,5.81 3,10.5C3,15.19 6.81,19 11.5,19C16.19,19 20,15.19 20,10.5C20,5.81 16.19,2 11.5,2M11.5,17C7.91,17 5,14.09 5,10.5C5,6.91 7.91,4 11.5,4C15.09,4 18,6.91 18,10.5C18,14.09 15.09,17 11.5,17M12.5,15H10.5V13H12.5V15M12.5,11H10.5V6H12.5V11Z" /></svg>
+      </button>
+      <button type="button" class="toggle" id="replaceBarToggle" title="Replace">
+        <svg viewBox="0 0 24 24"><path d="M11,13.5V21.5H13V13.5H11M11,2.5H13V10.5H11V2.5M4,11.5H20V13.5H4V11.5Z" /></svg>
+      </button>
+      <button type="button" class="toggle" id="footerContainerToggle" title="Toggle footer"></button>
+    </div>
+    <div id="replaceBar">
+      <label for="findInput">Find</label>
+      <input type="text" id="findInput">
+      <label for="replaceInput">Replace</label>
+      <input type="text" id="replaceInput">
+      <button type="button" class="toggle" id="matchCaseToggle" title="Match Case">
+        <svg viewBox="0 0 24 24"><path d="M1,19H4V22H6V19H9V17H1V19M2,5V11H4V7H6V11H8V5H2M14,5V15H12V11H10V15H8V5H14M20,11V15H18V13H16V15H14V11H20Z" /></svg>
+      </button>
+      <button type="button" class="toggle" id="wholeWordToggle" title="Whole Word">
+        <svg viewBox="0 0 24 24"><path d="M2,3H22V5H2V3M2,7H22V9H2V7M2,11H22V13H2V11M2,15H22V17H2V15M2,19H22V21H2V19Z" /></svg>
+      </button>
+      <button type="button" class="toggle" id="regexModeToggle" title="Regex">
+        <svg viewBox="0 0 24 24"><path d="M22,6V18H16V20H18V22H14V20H16V18H13V20H15V22H11V20H13V18H10V20H12V22H8V20H10V18H2V6H8V4H6V2H10V4H8V6H11V4H9V2H13V4H11V6H14V4H12V2H16V4H14V6H22Z" /></svg>
+      </button>
+      <button type="button" id="replaceAllButton" title="Replace All">
+        <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M15.5,6.5L14,8L15.5,9.5L17,8L15.5,6.5M8.5,6.5L7,8L8.5,9.5L10,8L8.5,6.5M12,14A4,4 0 0,0 16,18H8A4,4 0 0,0 12,14Z" /></svg>
+      </button>
+      <button type="button" id="undoButton" disabled title="Undo">
+        <svg viewBox="0 0 24 24"><path d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z" /></svg>
+      </button>
+      <output for="findInput matchCaseToggle wholeWordToggle regexModeToggle editor" id="replaceFeedback"></output>
+    </div>
+  </header>
+  <main>
+    <div id="editorWrapper">
+      <textarea><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML Document Template</title>
+  <style>
+    p {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <p>Hello, world!</p>
+  <script>
+    console.log(document.querySelector('p').textContent);
+  </script>
+</body>
+</html></textarea>
+    </div>
+    <div id="previewerWrapper">
+      <iframe></iframe>
+    </div>
+  </main>
+  <footer>
+    <output for="editor">
+      <span class="number" id="characterCount"></span> <span id="characterLabel"></span> | <span class="number" id="byteCount"></span> <span id="byteLabel"></span>
+    </output>
+    <span id="share">Share</span>
+    <a href="https://x.com/intent/post?text=HTML%20Editor%3A%20Online%20HTML%20Editor%20with%20Real-Time%20Preview&url=https%3A%2F%2Fhtmleditor.gitlab.io" target="_blank"><img src="images/x.svg" alt="X"></a>
+    <a href="https://www.facebook.com/sharer.php?u=https%3A%2F%2Fhtmleditor.gitlab.io" target="_blank"><img src="images/facebook.svg" alt="Facebook"></a>
+    <a href="https://www.linkedin.com/feed/?shareActive=true&shareUrl=https%3A%2F%2Fhtmleditor.gitlab.io" target="_blank"><img src="images/linkedin.svg" alt="LinkedIn"></a>
+    <a href="mailto:?subject=HTML%20Editor%3A%20Online%20HTML%20Editor%20with%20Real-Time%20Preview&body=https%3A%2F%2Fhtmleditor.gitlab.io" target="_blank"><img src="images/email.svg" alt="Email"></a>
+    <button type="button" id="copyButton"><img src="images/link.svg" alt="Link"></button>
+    <output id="copyNotification"></output>
+    <address><a href="https://Instagram.com/tubesoftyt.ig" title="Instagram">Feedback</a> | Created by <a href="https://tzproapks.blogspot.com/" rel="author">tzproapks</a></address>
+  </footer>
+  <script>
+    // ====================
+    // Constants and Variables
+    // ====================
+    const downloadLink = document.getElementById('downloadLink');
+    const fontSizeSelector = document.getElementById('fontSizeSelector');
+    const previewSelector = document.getElementById('previewSelector');
+    const runButton = document.getElementById('runButton');
+    const resetButton = document.getElementById('resetButton');
+    const selectButton = document.getElementById('selectButton');
+    const fileInput = document.getElementById('fileInput');
+    const editorSizeInput = document.getElementById('editorSizeInput');
+    const editorSizeOutput = document.getElementById('editorSizeOutput');
+    const verticalViewToggle = document.getElementById('verticalViewToggle');
+    const darkEditorToggle = document.getElementById('darkEditorToggle');
+    const spellcheckToggle = document.getElementById('spellcheckToggle');
+    const replaceBarToggle = document.getElementById('replaceBarToggle');
+    const footerContainerToggle = document.getElementById('footerContainerToggle');
+    const replaceBar = document.getElementById('replaceBar');
+    const findInput = document.getElementById('findInput');
+    const replaceInput = document.getElementById('replaceInput');
+    const matchCaseToggle = document.getElementById('matchCaseToggle');
+    const wholeWordToggle = document.getElementById('wholeWordToggle');
+    const regexModeToggle = document.getElementById('regexModeToggle');
+    const toggleButtons = document.querySelectorAll('.toggle');
+    const replaceAllButton = document.getElementById('replaceAllButton');
+    const undoButton = document.getElementById('undoButton');
+    const replaceFeedback = document.getElementById('replaceFeedback');
+    const mainContainer = document.querySelector('main');
+    const editorWrapper = document.getElementById('editorWrapper');
+    const previewerWrapper = document.getElementById('previewerWrapper');
+    const editor = document.querySelector('textarea');
+    const previewer = document.querySelector('iframe');
+    const footerContainer = document.querySelector('footer');
+    const characterCount = document.getElementById('characterCount');
+    const characterLabel = document.getElementById('characterLabel');
+    const byteCount = document.getElementById('byteCount');
+    const byteLabel = document.getElementById('byteLabel');
+    const copyButton = document.getElementById('copyButton');
+    const copyNotification = document.getElementById('copyNotification');
+    const numberFormatter = new Intl.NumberFormat();
+    let previousEditorValue = null;
+
+    // ====================
+    // Reusable Functions
+    // ====================
+    // Create a Blob from the editor content
+    function createContentBlob() {
+      return new Blob([editor.value], {
+        type: 'text/html; charset=utf-8'
+      });
+    }
+
+    // Debounce function
+    function debounce(callback) {
+      let timeout = null;
+      return delay => {
+        clearTimeout(timeout);
+        timeout = setTimeout(callback, delay);
+      };
+    }
+
+    // Toggle class helper function
+    function toggleClass(element, className, force) {
+      element.classList.toggle(className, force);
+    }
+
+    // Check if a button is active
+    function isActive(button) {
+      return button.classList.contains('active');
+    }
+
+    function deactivate(button) {
+      button.classList.remove('active');
+    }
+
+    // Interpret some common escape sequences in the replacement string
+    function interpretEscapeSequences(str) {
+      const escapeMap = {
+        '\\n': '\n', // Newline
+        '\\r': '\r', // Carriage return
+        '\\t': '\t', // Tab
+        '\\\\': '\\', // Backslash
+      };
+      return str.replace(/\\[nrt\\]/g, match => escapeMap[match]);
+    }
+
+    // Format numbers with thousand separators
+    function separateThousands(number) {
+      return numberFormatter.format(number);
+    }
+
+    // ====================
+    // Core Functions
+    // ====================
+    // Create a download URL for the editor content
+    function createDownloadURL() {
+      const blob = createContentBlob();
+      this.href = URL.createObjectURL(blob);
+    }
+
+    // Resize the editor font size
+    function resizeFont() {
+      editor.style.fontSize = `${fontSizeSelector.value}px`;
+    }
+
+    // Resize the editor and previewer panes
+    function resizeEditor() {
+      const editorSizeInputValue = editorSizeInput.value;
+      editorWrapper.style.flexGrow = editorSizeInputValue;
+      previewerWrapper.style.flexGrow = 100 - editorSizeInputValue;
+      editorSizeOutput.value = (editorSizeInputValue / 100).toFixed(2);
+    }
+
+    function updatePlaceholder() {
+      findInput.placeholder = isActive(regexModeToggle) ? 'pattern or /pattern/flags' : '';
+    }
+
+    function clearReplaceFeedback() {
+      if (replaceFeedback.value) {
+        replaceFeedback.value = '';
+      }
+    }
+
+    function clearUndoState() {
+      if (previousEditorValue !== null) {
+        previousEditorValue = null;
+        undoButton.disabled = true;
+      }
+    }
+
+    // Update the iframe with the editor content
+    function preview() {
+      previewer.replaceWith(previewer); // A fresh iframe to delete JavaScript variables
+      const previewerDocument = previewer.contentDocument;
+      previewerDocument.write(editor.value);
+      previewerDocument.close();
+    }
+
+    // Update character count
+    function updateCharacterCount() {
+      const characterCountValue = editor.value.length;
+      characterCount.textContent = separateThousands(characterCountValue);
+      characterLabel.textContent = characterCountValue === 1 ? 'character' : 'characters';
+    }
+
+    // Update byte count
+    function updateByteCount() {
+      const blob = createContentBlob();
+      const byteCountValue = blob.size;
+      byteCount.textContent = separateThousands(byteCountValue);
+      byteLabel.textContent = byteCountValue === 1 ? 'byte' : 'bytes';
+    }
+
+    // Update both character count and byte count
+    function updateDocumentMetrics() {
+      if (footerContainer.className !== 'hidden') {
+        updateCharacterCount();
+        updateByteCount();
+      }
+    }
+
+    // ====================
+    // Debounced Functions
+    // ====================
+    const debouncedPreview = debounce(preview);
+    const debouncedUpdateDocumentMetrics = debounce(updateDocumentMetrics);
+    const debouncedClearCopyNotification = debounce(() => copyNotification.value = '');
+
+    // ====================
+    // Preview Update Dispatcher
+    // ====================
+    // Determine and trigger the appropriate preview update based on the selected preview mode
+    function dispatchPreviewUpdate() {
+      const previewSelectorValue = previewSelector.value;
+      if (previewSelectorValue === 'Instant') {
+        preview();
+      } else if (previewSelectorValue !== 'Manual') {
+        debouncedPreview(previewSelectorValue);
+      }
+    }
+
+    // ====================
+    // Event Listeners
+    // ====================
+    downloadLink.addEventListener('click', createDownloadURL);
+    downloadLink.addEventListener('contextmenu', createDownloadURL);
+
+    fontSizeSelector.addEventListener('change', resizeFont);
+
+    runButton.addEventListener('click', preview);
+
+    editorSizeInput.addEventListener('input', resizeEditor);
+
+    for (const button of toggleButtons) {
+      button.addEventListener('click', function() {
+        toggleClass(this, 'active');
+        if (this === verticalViewToggle) {
+          toggleClass(mainContainer, 'vertical');
+        } else if (this === darkEditorToggle) {
+          toggleClass(editor, 'dark');
+        } else if (this === spellcheckToggle) {
+          editor.spellcheck = !editor.spellcheck;
+        } else if (this === replaceBarToggle) {
+          toggleClass(replaceBar, 'hidden');
+        } else if (this === footerContainerToggle) {
+          toggleClass(footerContainer, 'hidden');
+          updateDocumentMetrics();
+        } else if (this === matchCaseToggle || this === wholeWordToggle) {
+          deactivate(regexModeToggle);
+          updatePlaceholder();
+          clearReplaceFeedback();
+        } else if (this === regexModeToggle) {
+          deactivate(matchCaseToggle);
+          deactivate(wholeWordToggle);
+          updatePlaceholder();
+          clearReplaceFeedback();
+        }
+      });
+    }
+
+    for (const textField of [findInput, replaceInput, editor]) {
+      textField.addEventListener('input', function() {
+        clearReplaceFeedback();
+        if (this === editor) {
+          clearUndoState();
+          dispatchPreviewUpdate();
+          debouncedUpdateDocumentMetrics(500);
+        }
+      });
+    }
+
+    resetButton.addEventListener('click', () => {
+      if (editor.value && editor.value !== editor.defaultValue && !confirm('Are you sure you want to reset the editor content to the default template?\nAll unsaved changes will be lost.')) {
+        return;
+      }
+      fileInput.value = '';
+      downloadLink.download = 'template.html';
+      editor.value = editor.defaultValue;
+      clearReplaceFeedback();
+      clearUndoState();
+      dispatchPreviewUpdate();
+      updateDocumentMetrics();
+    });
+
+    selectButton.addEventListener('click', () => editor.select());
+
+    fileInput.addEventListener('change', async function() {
+      const file = this.files[0];
+      if (file) { // Ensure that there's a file to read so Chrome, for example, doesn't run this function when you cancel choosing a new file
+        downloadLink.download = file.name;
+        editor.value = await file.text();
+        clearReplaceFeedback();
+        clearUndoState();
+        dispatchPreviewUpdate();
+        updateDocumentMetrics();
+      }
+    });
+
+    replaceAllButton.addEventListener('click', () => {
+      const findInputValue = findInput.value;
+      const replaceInputValue = replaceInput.value;
+      const currentEditorValue = editor.value;
+      const isCaseSensitive = isActive(matchCaseToggle);
+      const isWholeWord = isActive(wholeWordToggle);
+      const isRegex = isActive(regexModeToggle);
+
+      if (!findInputValue) {
+        replaceFeedback.value = 'No find term entered';
+        return;
+      }
+
+      // Prepare pattern and flags for RegExp constructor based on find input and options
+      let pattern;
+      let flags = 'g'; // Global flag is always needed to replace all
+      let regex;
+      if (isRegex) {
+        const regexLiteralMatch = findInputValue.match(/^\/(.*)\/(.*)$/);
+        if (regexLiteralMatch) {
+          [, pattern, flags] = regexLiteralMatch;
+          if (!flags.includes('g')) {
+            flags += 'g';
+          }
+        } else {
+          pattern = findInputValue;
+        }
+      } else {
+        pattern = RegExp.escape(findInputValue);
+        if (isWholeWord) {
+          // Unicode-aware word boundaries (mimics \b) with 'u' flag for non-English characters
+          pattern = `(?<![\\p{L}\\p{N}_])${pattern}(?![\\p{L}\\p{N}_])`;
+          flags += 'u';
+        }
+        if (!isCaseSensitive) {
+          flags += 'i';
+        }
+      }
+      try {
+        regex = new RegExp(pattern, flags);
+      } catch (error) {
+        replaceFeedback.value = error.message;
+        return;
+      }
+
+      const matches = currentEditorValue.match(regex);
+      if (matches) {
+        const matchCount = matches.length;
+        previousEditorValue = currentEditorValue;
+        // Use function replacement in non-regex mode to avoid interpreting $ patterns
+        editor.value = currentEditorValue.replace(regex, isRegex ? interpretEscapeSequences(replaceInputValue) : () => replaceInputValue);
+        replaceFeedback.innerHTML = `<span class="number">${separateThousands(matchCount)}</span> ${matchCount === 1 ? 'replacement' : 'replacements'} made`;
+        undoButton.disabled = false;
+        dispatchPreviewUpdate();
+        updateDocumentMetrics();
+      } else {
+        replaceFeedback.value = 'No matches found';
+      }
+    });
+
+    undoButton.addEventListener('click', () => {
+      editor.value = previousEditorValue;
+      replaceFeedback.value = 'Replacement undone';
+      clearUndoState();
+      dispatchPreviewUpdate();
+      updateDocumentMetrics();
+    });
+
+    copyButton.addEventListener('click', () => {
+      navigator.clipboard.writeText(location);
+      copyNotification.value = 'Link copied';
+      debouncedClearCopyNotification(2000);
+    });
+
+    // Save the current state to localStorage
+    document.addEventListener('visibilitychange', function() {
+      if (this.hidden) {
+        const currentState = {
+          spellcheckToggle: spellcheckToggle.className,
+          verticalViewToggle: verticalViewToggle.className,
+          darkEditorToggle: darkEditorToggle.className,
+          replaceBarToggle: replaceBarToggle.className,
+          footerContainerToggle: footerContainerToggle.className,
+          matchCaseToggle: matchCaseToggle.className,
+          wholeWordToggle: wholeWordToggle.className,
+          regexModeToggle: regexModeToggle.className,
+          fontSizeSelector: fontSizeSelector.value,
+          previewSelector: previewSelector.value,
+          editorSizeInput: editorSizeInput.value,
+          findInput: findInput.value,
+          replaceInput: replaceInput.value,
+          editor: editor.value,
+        };
+        localStorage.setItem('state', JSON.stringify(currentState));
+      }
+    });
+
+    // ====================
+    // Initialization
+    // ====================
+    // Restore the state from localStorage
+    const restoredState = JSON.parse(localStorage.getItem('state'));
+    if (restoredState) {
+      spellcheckToggle.className = restoredState.spellcheckToggle;
+      verticalViewToggle.className = restoredState.verticalViewToggle;
+      darkEditorToggle.className = restoredState.darkEditorToggle;
+      replaceBarToggle.className = restoredState.replaceBarToggle;
+      footerContainerToggle.className = restoredState.footerContainerToggle;
+      matchCaseToggle.className = restoredState.matchCaseToggle;
+      wholeWordToggle.className = restoredState.wholeWordToggle;
+      regexModeToggle.className = restoredState.regexModeToggle;
+      fontSizeSelector.value = restoredState.fontSizeSelector;
+      previewSelector.value = restoredState.previewSelector;
+      editorSizeInput.value = restoredState.editorSizeInput;
+      findInput.value = restoredState.findInput;
+      replaceInput.value = restoredState.replaceInput;
+      editor.value = restoredState.editor;
+    }
+
+    // Update the UI based on the restored state
+    editor.spellcheck = isActive(spellcheckToggle);
+    toggleClass(mainContainer, 'vertical', isActive(verticalViewToggle));
+    toggleClass(editor, 'dark', isActive(darkEditorToggle));
+    toggleClass(replaceBar, 'hidden', !isActive(replaceBarToggle));
+    toggleClass(footerContainer, 'hidden', !isActive(footerContainerToggle));
+    resizeFont();
+    resizeEditor();
+    updatePlaceholder();
+    dispatchPreviewUpdate();
+    updateDocumentMetrics();
+  </script>
+</body>
+
+</html>
