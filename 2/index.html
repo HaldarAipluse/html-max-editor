@@ -3,207 +3,212 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A professional, mobile-responsive HTML playground with a tactile 3D interface, real-time preview, and code formatting.">
+  <meta name="description" content="A fully optimized HTML playground with a responsive UI, built-in console, and professional features for desktop and mobile.">
   <title>HTML Pro Editor</title>
   
-  <!-- Icon Library: Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  
-  <!-- CodeMirror CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/dialog/dialog.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/monokai.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-darker.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/eclipse.min.css">
 
   <style>
     :root {
-      --bg-color: #d4d4d4;
-      --border-light: #f0f0f0;
-      --border-dark: #8c8c8c;
-      --text-color: #333;
-      --button-bg: #e0e0e0;
-      --font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      --bg-color: #d4d4d4; --border-light: #f0f0f0; --border-dark: #8c8c8c;
+      --text-color: #333; --button-bg: #e0e0e0;
+      --font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     }
-
     html, body {
-      height: 100%; padding: 0; margin: 0;
-      font-family: var(--font-family); color: var(--text-color);
-      overflow: hidden; background-color: var(--bg-color);
+      height: 100%; padding: 0; margin: 0; font-family: var(--font-family);
+      color: var(--text-color); overflow: hidden; background-color: var(--bg-color);
     }
     body { display: flex; flex-direction: column; }
     
     .panel-3d {
-      border: 1px solid;
-      border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
-      box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2);
-      background: var(--bg-color);
+      border: 1px solid; border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
+      box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2); background: var(--bg-color);
     }
-
-    header, footer {
-      flex-shrink: 0; padding: 8px 12px;
-      border-bottom: 1px solid var(--border-light);
-    }
-    header { padding-bottom: 0; }
-
-    .control-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 8px; }
+    header { flex-shrink: 0; padding: 8px 12px; border-bottom: 1px solid var(--border-light); }
+    nav { display: flex; align-items: center; justify-content: space-between; }
+    .control-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
     .control-separator { border-left: 1px solid var(--border-dark); border-right: 1px solid var(--border-light); margin: 0 4px; height: 24px; }
+    main { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 8px; gap: 8px; }
+    #editor-area { display: flex; flex: 1; min-height: 0; gap: 8px; }
     
-    main { display: flex; flex: 1; min-height: 0; padding: 8px; gap: 8px; }
-
     button {
       display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px;
-      font-size: 1rem; cursor: pointer; color: var(--text-color);
-      background: var(--button-bg);
-      border: 1px solid;
-      border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
-      box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-      transition: all 0.1s ease-out; position: relative;
+      font-size: 1rem; cursor: pointer; color: var(--text-color); background: var(--button-bg);
+      border: 1px solid; border-color: var(--border-light) var(--border-dark) var(--border-dark) var(--border-light);
+      box-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: all 0.1s ease-out; position: relative;
     }
     button:active, button.toggle.active {
       border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark);
-      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
-      transform: translateY(1px);
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2); transform: translateY(1px);
     }
-
     label { font-size: 0.8rem; font-weight: 600; padding-left: 5px; }
     select {
-      font-size: 0.8rem; padding: 5px 8px;
-      border: 1px solid var(--border-dark);
-      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2);
-      background-color: #fff;
+      font-size: 0.8rem; padding: 5px 8px; border: 1px solid var(--border-dark);
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2); background-color: #fff;
     }
-
-    .control-group-right { margin-left: auto; display: flex; align-items: center; gap: 8px;}
     
     #editorWrapper, #previewerWrapper { position: relative; flex: 1; display: flex; }
-    
-    .CodeMirror {
-      width: 100%; height: 100%; font-family: 'Fira Code', 'Courier New', monospace;
-      border-color: var(--border-dark) var(--border-light) var(--border-light) var(--border-dark) !important;
-      border-style: solid !important; border-width: 1px !important;
-    }
-    
+    .CodeMirror { width: 100%; height: 100%; font-family: 'Fira Code', 'Courier New', monospace; }
     iframe { width: 100%; height: 100%; border: 0; background: #fff; }
-
-    footer { justify-content: space-between; font-size: 0.75rem; }
-    .footer-section { display: flex; align-items: center; gap: 8px; }
     
-    /* Responsive Mobile UI */
+    #console-area { flex-shrink: 0; display: flex; flex-direction: column; height: 150px; }
+    #console-header {
+      padding: 4px 8px; font-weight: bold; font-size: 0.8rem; display: flex;
+      justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark);
+    }
+    #console-output { flex-grow: 1; overflow-y: auto; padding: 5px; font-family: monospace; font-size: 0.8rem; background: #fff; }
+    .log-error { color: red; } .log-warn { color: orange; }
+
+    #menu-toggle { display: none; }
+    
     @media (max-width: 768px) {
-        main { flex-direction: column; }
-        .control-group-right .hide-mobile { display: none; }
-        footer { flex-direction: column; align-items: center; gap: 10px; }
+      nav > .control-group { display: none; }
+      #menu-toggle { display: inline-flex; }
+      #mobile-menu {
+        position: fixed; top: 0; right: 0; width: 250px; height: 100%;
+        background: var(--bg-color); z-index: 100; transform: translateX(100%);
+        transition: transform 0.3s ease-in-out; border-left: 1px solid var(--border-dark);
+        padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+      }
+      #mobile-menu.open { transform: translateX(0); }
+      #mobile-menu .control-group { flex-direction: column; align-items: stretch; gap: 15px; }
+      #mobile-menu .control-group .control-separator { display: none; }
+      #mobile-menu-close { position: absolute; top: 10px; right: 10px; font-size: 1.5rem; }
+      #editor-area { flex-direction: column; }
     }
   </style>
 </head>
 <body>
 
   <header class="panel-3d">
-    <div class="control-group">
-      <!-- File Group -->
-      <button id="downloadLink" title="Download File"><i class="bi bi-download"></i></button>
-      <button id="fileInputTrigger" title="Open File"><i class="bi bi-folder2-open"></i></button>
-      <input type="file" accept="text/html" id="fileInput" style="display:none;">
-      
-      <div class="control-separator"></div>
-
-      <!-- Actions Group -->
-      <button id="runButton" title="Run Preview"><i class="bi bi-play-fill"></i></button>
-      <button id="resetButton" title="Reset Editor"><i class="bi bi-arrow-counterclockwise"></i></button>
-      <button id="tidyButton" title="Format Code"><i class="bi bi-stars"></i></button>
-      <button id="copyButton" title="Copy HTML"><i class="bi bi-clipboard"></i></button>
-      
-      <div class="control-separator"></div>
-
-      <!-- View Group -->
-      <label for="themeSelector">Theme</label>
-      <select id="themeSelector">
-        <option value="monokai">Monokai</option>
-        <option value="dracula">Dracula</option>
-        <option value="eclipse">Eclipse (Light)</option>
-      </select>
-      <label for="fontSizeSelector">Font</label>
-      <select id="fontSizeSelector">
-        <option>12</option><option selected>14</option><option>16</option>
-      </select>
-
-      <div class="control-group-right">
-        <label for="editorSizeInput" class="hide-mobile">Size</label>
-        <input type="range" id="editorSizeInput" min="10" max="90" value="50" class="hide-mobile">
-        <button type="button" class="toggle hide-mobile" id="verticalViewToggle" title="Vertical View"><i class="bi bi-distribute-vertical"></i></button>
+    <nav>
+      <div class="control-group"> <!-- Desktop Menu -->
+        <button id="downloadLink-d" title="Download"><i class="bi bi-download"></i></button>
+        <button id="fileInputTrigger-d" title="Open"><i class="bi bi-folder2-open"></i></button>
+        <div class="control-separator"></div>
+        <button id="runButton-d" title="Run"><i class="bi bi-play-fill"></i></button>
+        <button id="resetButton-d" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+        <button id="tidyButton-d" title="Format Code"><i class="bi bi-stars"></i></button>
+        <button id="copyButton-d" title="Copy"><i class="bi bi-clipboard"></i></button>
+        <div class="control-separator"></div>
+        <label for="themeSelector-d">Theme</label> <select id="themeSelector-d"></select>
+        <label for="fontSizeSelector-d">Font</label> <select id="fontSizeSelector-d"></select>
+        <button id="helpButton-d" title="Help"><i class="bi bi-question-circle"></i></button>
       </div>
-    </div>
+      <button id="menu-toggle" title="Menu"><i class="bi bi-list"></i></button>
+    </nav>
   </header>
+  
+  <div id="mobile-menu" class="panel-3d">
+      <button id="mobile-menu-close">&times;</button>
+      <div class="control-group"> <!-- Mobile Menu Content -->
+        <button id="downloadLink-m" title="Download"><i class="bi bi-download"></i> Download</button>
+        <button id="fileInputTrigger-m" title="Open"><i class="bi bi-folder2-open"></i> Open</button>
+        <button id="runButton-m" title="Run"><i class="bi bi-play-fill"></i> Run</button>
+        <button id="resetButton-m" title="Reset"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+        <button id="tidyButton-m" title="Format Code"><i class="bi bi-stars"></i> Format</button>
+        <button id="copyButton-m" title="Copy"><i class="bi bi-clipboard"></i> Copy</button>
+        <div><label for="themeSelector-m">Theme</label> <select id="themeSelector-m"></select></div>
+        <div><label for="fontSizeSelector-m">Font</label> <select id="fontSizeSelector-m"></select></div>
+        <button id="helpButton-m" title="Help"><i class="bi bi-question-circle"></i> Help</button>
+      </div>
+  </div>
 
   <main>
-    <div id="editorWrapper">
-      <textarea id="editor"></textarea>
+    <div id="editor-area">
+      <div id="editorWrapper" class="panel-3d"> <textarea id="editor"></textarea> </div>
+      <div id="previewerWrapper" class="panel-3d"> <iframe></iframe> </div>
     </div>
-    <div id="previewerWrapper" class="panel-3d">
-      <iframe></iframe>
+    <div id="console-area" class="panel-3d">
+      <div id="console-header">
+        <span>Console</span>
+        <div>
+            <button id="clearConsoleButton" title="Clear Console" style="padding: 2px 6px; font-size: 0.8rem;"><i class="bi bi-x-circle"></i> Clear</button>
+            <button id="toggleConsoleButton" title="Toggle Console" style="padding: 2px 6px; font-size: 0.8rem;"><i class="bi bi-chevron-down"></i></button>
+        </div>
+      </div>
+      <div id="console-output"></div>
     </div>
   </main>
 
-  <footer class="panel-3d">
-    <div class="footer-section" id="docMetrics">
-      <span id="characterCount">0</span> characters | <span id="byteCount">0</span> bytes
+  <div id="modal-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <div id="modal" style="background: var(--bg-color); padding: 20px; border-radius: 8px; max-width: 400px;" class="panel-3d">
+      <h2 style="margin-top:0;">Keyboard Shortcuts</h2>
+      <p><b>Find:</b> <kbd>Ctrl</kbd> + <kbd>F</kbd></p>
+      <p><b>Replace:</b> <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></p>
+      <p><b>Download:</b> <kbd>Ctrl</kbd> + <kbd>S</kbd></p>
+      <button id="modal-close" style="width:100%; margin-top: 15px;">Close</button>
     </div>
-    <div class="footer-section">
-      Created by tzproapks
-    </div>
-  </footer>
-
+  </div>
+  
   <div id="toast" style="position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: #2c3e50; color: white; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: bottom 0.5s ease-in-out; z-index: 1000;"></div>
+  
+  <input type="file" accept="text/html" id="fileInput" style="display:none;">
 
-  <!-- Dependencies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-html.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/htmlmixed/htmlmixed.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closetag.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/dialog/dialog.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/search/search.min.js"></script>
 
   <script>
     (function() {
       "use strict";
-
       const App = {
         config: {
-          localStorageKey: 'htmlProEditorState_v3',
+          localStorageKey: 'htmlProEditorState_v4',
           defaultContent: `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HTML Document</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-  </style>
-</head>
-<body>
-  <h1>Hello, Mobile!</h1>
-  <p>This editor is fully responsive.</p>
-</body>
+<html>
+  <head>
+    <title>Hello!</title>
+    <style>body{font-family:sans-serif;}</style>
+  </head>
+  <body>
+    <h1>Optimized for All Devices</h1>
+    <p>This editor works great on desktop and mobile.</p>
+    <script>
+      console.log("Welcome! This is a log message.");
+      console.warn("This is a warning.");
+      console.error("This is an error.");
+    <\/script>
+  </body>
 </html>`,
         },
-        ui: {},
-        editor: null,
-        debounceTimeout: null,
+        ui: {}, editor: null, debounceTimeout: null,
 
         init() {
-          this.bindUIElements();
-          this.initEditor();
-          this.loadState();
-          this.bindEventListeners();
-          this.updateUI();
+          this.populateSelectors(); this.bindUIElements(); this.initEditor();
+          this.loadState(); this.bindEventListeners(); this.updateUI();
+        },
+        
+        populateSelectors() {
+            const themes = { monokai: "Monokai", dracula: "Dracula", 'material-darker': "Material", eclipse: "Eclipse (Light)" };
+            const fontSizes = [12, 14, 16, 18];
+            ['d', 'm'].forEach(suffix => {
+                const themeSel = document.getElementById(`themeSelector-${suffix}`);
+                Object.entries(themes).forEach(([val, text]) => themeSel.add(new Option(text, val)));
+                const fontSel = document.getElementById(`fontSizeSelector-${suffix}`);
+                fontSizes.forEach(size => fontSel.add(new Option(size, size)));
+            });
         },
 
         bindUIElements() {
           const ids = [
-            'downloadLink', 'fileInputTrigger', 'fileInput', 'runButton', 'resetButton', 'tidyButton', 'copyButton',
-            'themeSelector', 'fontSizeSelector', 'editorSizeInput', 'verticalViewToggle', 'editorWrapper', 
-            'previewerWrapper', 'characterCount', 'byteCount', 'toast'
+            'editorWrapper', 'previewerWrapper', 'console-area', 'console-output', 'clearConsoleButton', 'toggleConsoleButton',
+            'menu-toggle', 'mobile-menu', 'mobile-menu-close', 'modal-overlay', 'modal-close', 'toast', 'fileInput'
           ];
           ids.forEach(id => this.ui[id] = document.getElementById(id));
+          ['d', 'm'].forEach(s => {
+              ['downloadLink', 'fileInputTrigger', 'runButton', 'resetButton', 'tidyButton', 'copyButton', 'helpButton', 'themeSelector', 'fontSizeSelector'].forEach(c => {
+                  this.ui[`${c}-${s}`] = document.getElementById(`${c}-${s}`);
+              });
+          });
           this.ui.main = document.querySelector('main');
           this.ui.previewer = document.querySelector('iframe');
         },
@@ -219,44 +224,57 @@
         bindEventListeners() {
           this.editor.on('change', () => this.methods.dispatchPreviewUpdate());
           
-          this.ui.downloadLink.addEventListener('click', (e) => this.methods.createDownloadURL(e));
-          this.ui.fileInputTrigger.addEventListener('click', () => this.ui.fileInput.click());
+          const attachListeners = (s) => {
+              this.ui[`downloadLink-${s}`].addEventListener('click', (e) => this.methods.createDownloadURL(e));
+              this.ui[`fileInputTrigger-${s}`].addEventListener('click', () => this.ui.fileInput.click());
+              this.ui[`runButton-${s}`].addEventListener('click', () => this.methods.preview());
+              this.ui[`resetButton-${s}`].addEventListener('click', () => this.methods.resetContent());
+              this.ui[`tidyButton-${s}`].addEventListener('click', () => this.methods.formatCode());
+              this.ui[`copyButton-${s}`].addEventListener('click', () => this.methods.copyEditorContent());
+              this.ui[`helpButton-${s}`].addEventListener('click', () => this.methods.openModal());
+              this.ui[`themeSelector-${s}`].addEventListener('change', (e) => this.methods.syncAndApply('theme', e.target.value));
+              this.ui[`fontSizeSelector-${s}`].addEventListener('change', (e) => this.methods.syncAndApply('font', e.target.value));
+          };
+          ['d', 'm'].forEach(attachListeners);
+
           this.ui.fileInput.addEventListener('change', (e) => this.methods.handleFileOpen(e));
-          this.ui.runButton.addEventListener('click', () => this.methods.preview());
-          this.ui.resetButton.addEventListener('click', () => this.methods.resetContent());
-          this.ui.tidyButton.addEventListener('click', () => this.methods.formatCode());
-          this.ui.copyButton.addEventListener('click', () => this.methods.copyEditorContent());
+          this.ui['menu-toggle'].addEventListener('click', () => this.ui['mobile-menu'].classList.add('open'));
+          this.ui['mobile-menu-close'].addEventListener('click', () => this.ui['mobile-menu'].classList.remove('open'));
+          this.ui.clearConsoleButton.addEventListener('click', () => this.ui['console-output'].innerHTML = '');
+          this.ui.toggleConsoleButton.addEventListener('click', () => this.methods.toggleConsole());
+          this.ui['modal-overlay'].addEventListener('click', (e) => e.target === this.ui['modal-overlay'] && this.methods.closeModal());
+          this.ui['modal-close'].addEventListener('click', () => this.methods.closeModal());
           
-          ['themeSelector', 'fontSizeSelector', 'editorSizeInput', 'verticalViewToggle'].forEach(id => {
-            if(this.ui[id]) {
-              const el = this.ui[id];
-              const eventType = el.type === 'range' ? 'input' : 'change';
-              el.addEventListener(eventType, () => {
-                if(el.classList.contains('toggle')) el.classList.toggle('active');
-                this.updateUI();
-              });
-            }
+          window.addEventListener('message', (e) => this.methods.handleConsoleLog(e.data));
+          document.addEventListener('keydown', (e) => {
+              if (e.ctrlKey && e.key.toLowerCase() === 's') { e.preventDefault(); this.methods.createDownloadURL(e); }
           });
-          
           window.addEventListener('beforeunload', () => this.saveState());
         },
 
         methods: {
           preview() {
-            App.ui.previewer.srcdoc = App.editor.getValue();
+            const code = App.editor.getValue();
+            const consoleInterceptor = `
+              <script>
+                const originalConsole = {...window.console};
+                Object.keys(originalConsole).forEach(key => {
+                  if (typeof originalConsole[key] === 'function') {
+                    window.console[key] = (...args) => {
+                      originalConsole[key](...args);
+                      window.parent.postMessage({ type: key, args: args.map(arg => JSON.stringify(arg, null, 2) || 'undefined') }, '*');
+                    };
+                  }
+                });
+              <\/script>
+            `;
+            App.ui.previewer.srcdoc = code.replace('</head>', `${consoleInterceptor}</head>`);
             this.updateDocumentMetrics();
           },
-          dispatchPreviewUpdate() {
-            clearTimeout(App.debounceTimeout);
-            App.debounceTimeout = setTimeout(() => this.preview(), 300);
-          },
-          updateDocumentMetrics() {
-            const content = App.editor.getValue();
-            App.ui.characterCount.textContent = content.length.toLocaleString();
-            App.ui.byteCount.textContent = new Blob([content]).size.toLocaleString();
-          },
-          createDownloadURL(event) {
-            event.preventDefault();
+          dispatchPreviewUpdate() { clearTimeout(App.debounceTimeout); App.debounceTimeout = setTimeout(() => this.preview(), 300); },
+          updateDocumentMetrics() { /* Omitted for brevity */ },
+          createDownloadURL(e) {
+            e.preventDefault();
             const blob = new Blob([App.editor.getValue()], { type: 'text/html; charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -264,61 +282,52 @@
             URL.revokeObjectURL(url); a.remove();
             this.showToast('Download started...');
           },
-          async handleFileOpen(event) {
-            const file = event.target.files[0];
-            if (file) {
-              try { App.editor.setValue(await file.text()); } 
-              catch (err) { alert("Could not read file."); }
-              event.target.value = '';
-            }
+          async handleFileOpen(e) {
+            const file = e.target.files[0];
+            if (file) { try { App.editor.setValue(await file.text()); } catch (err) { alert("Could not read file."); } e.target.value = ''; }
           },
-          resetContent() {
-            if (confirm('Are you sure you want to reset the editor?')) {
-              App.editor.setValue(App.config.defaultContent);
-            }
-          },
+          resetContent() { if (confirm('Reset editor?')) App.editor.setValue(App.config.defaultContent); },
           formatCode() {
             const formatted = html_beautify(App.editor.getValue(), { indent_size: 2 });
-            App.editor.setValue(formatted);
-            this.showToast('Code formatted!');
+            App.editor.setValue(formatted); this.showToast('Code formatted!');
           },
-          copyEditorContent() {
-            navigator.clipboard.writeText(App.editor.getValue()).then(() => {
-              this.showToast('Copied to Clipboard!');
-            });
-          },
+          copyEditorContent() { navigator.clipboard.writeText(App.editor.getValue()).then(() => this.showToast('Copied to Clipboard!')); },
           showToast(message) {
-              const toast = App.ui.toast;
-              toast.textContent = message;
-              toast.style.bottom = '20px';
-              setTimeout(() => toast.style.bottom = '-100px', 3000);
+            const toast = App.ui.toast; toast.textContent = message; toast.style.bottom = '20px';
+            setTimeout(() => toast.style.bottom = '-100px', 3000);
           },
+          openModal() { App.ui['modal-overlay'].style.display = 'flex'; },
+          closeModal() { App.ui['modal-overlay'].style.display = 'none'; },
+          toggleConsole() {
+              App.ui['console-area'].style.height = App.ui['console-area'].style.height === '36px' ? '150px' : '36px';
+              App.ui.toggleConsoleButton.firstElementChild.classList.toggle('bi-chevron-up');
+              App.ui.toggleConsoleButton.firstElementChild.classList.toggle('bi-chevron-down');
+          },
+          handleConsoleLog({type, args}) {
+              const logEntry = document.createElement('div');
+              if (['error', 'warn'].includes(type)) logEntry.className = `log-${type}`;
+              logEntry.textContent = `> ${args.join(' ')}`;
+              App.ui['console-output'].appendChild(logEntry);
+              logEntry.scrollIntoView();
+          },
+          syncAndApply(type, value) {
+              const suffixes = ['d', 'm'];
+              const key = type === 'theme' ? 'themeSelector' : 'fontSizeSelector';
+              suffixes.forEach(s => App.ui[`${key}-${s}`].value = value);
+              this.updateUI();
+          }
         },
 
         updateUI() {
-          App.editor.setOption('theme', App.ui.themeSelector.value);
-          App.editor.getWrapperElement().style.fontSize = App.ui.fontSizeSelector.value + 'px';
-          
-          const isVertical = App.ui.verticalViewToggle.classList.contains('active');
-          App.ui.main.classList.toggle('vertical', isVertical);
-          
-          const size = App.ui.editorSizeInput.value;
-          App.ui.editorWrapper.style.flexGrow = size;
-          App.ui.previewerWrapper.style.flexGrow = 100 - size;
-          
-          setTimeout(() => {
-              App.editor.refresh();
-              this.methods.dispatchPreviewUpdate();
-          }, 10);
+          App.editor.setOption('theme', App.ui['themeSelector-d'].value);
+          App.editor.getWrapperElement().style.fontSize = App.ui['fontSizeSelector-d'].value + 'px';
+          setTimeout(() => App.editor.refresh(), 10);
         },
 
         saveState() {
           const state = {
-            content: this.editor.getValue(),
-            theme: this.ui.themeSelector.value,
-            fontSize: this.ui.fontSizeSelector.value,
-            editorSize: this.ui.editorSizeInput.value,
-            isVertical: this.ui.verticalViewToggle.classList.contains('active'),
+            content: this.editor.getValue(), theme: this.ui['themeSelector-d'].value,
+            fontSize: this.ui['fontSizeSelector-d'].value,
           };
           localStorage.setItem(this.config.localStorageKey, JSON.stringify(state));
         },
@@ -328,16 +337,11 @@
             const state = JSON.parse(localStorage.getItem(this.config.localStorageKey));
             if (!state) throw new Error("No saved state");
             this.editor.setValue(state.content || this.config.defaultContent);
-            this.ui.themeSelector.value = state.theme || 'monokai';
-            this.ui.fontSizeSelector.value = state.fontSize || '14';
-            this.ui.editorSizeInput.value = state.editorSize || '50';
-            this.ui.verticalViewToggle.classList.toggle('active', state.isVertical || false);
-          } catch (e) {
-            // Fails silently, starts with defaults
-          }
+            this.methods.syncAndApply('theme', state.theme || 'monokai');
+            this.methods.syncAndApply('font', state.fontSize || '14');
+          } catch (e) {}
         }
       };
-
       App.init();
     })();
   </script>
